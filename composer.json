@@ -1,19 +1,19 @@
 {
-  "name": "colyll/date-snowflake",
-  "description": "Add date string before a Short twitter's snowflake ID",
-  "type": "library",
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "Colyll",
-      "email": "colyll@qq.com"
+    "name": "colyll/date-snowflake",
+    "description": "Add date string before a Short twitter's snowflake ID",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Colyll",
+            "email": "colyll@qq.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Colyll\\": "src/"
+        }
     }
-  ],
-  "minimum-stability": "dev",
-  "require": {},
-  "autoload": {
-    "psr-4": {
-      "Colyll\\": "src/"
-    }
-  }
 }

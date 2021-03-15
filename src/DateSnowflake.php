@@ -29,7 +29,14 @@ class DateSnowflake {
     private $dateString;  // date('Ymd')  日期
 
     public function __construct($machineId = 0) {
+        $machineId = empty($machineId) ? $this->config() :$machineId;
         $this->machineId = $machineId;
+    }
+
+    private function config() {
+        $machineId = Config('snowflake.machineId');
+
+        return $machineId ? $machineId : 0;
     }
 
     /**
