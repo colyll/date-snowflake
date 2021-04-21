@@ -1,5 +1,15 @@
 # date-snowflake
-Add date string before a Short twitter's snowflake ID
+Add date string before a Short twitter's snowflake ID, e.g. 2021031336140492049070.
+
+    /**
+     *  由于雪花算法加上日期有26位长，所以修改缩小到22位。
+     * |---------------------------雪花算法 (64bits)---------------------------------|
+     * |--补位(1bit)--|---时间戳毫秒(41bit)---|---机器ID(10bit)--|---序号(12bit)--|
+     *
+     *              |-------------------------修改后(48bits)-----------------------------|
+     *    日期 + |----每日当前毫秒(28bit)---|---机器ID(9bit)---|----序号(11bit)----|
+     *
+     */
 
 # use
 ## a. General usage
