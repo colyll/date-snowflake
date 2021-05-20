@@ -33,13 +33,7 @@ class DateSnowflake {
     public function __construct($machineId = 0) {
         $machineId = empty($machineId) ? $this->config() :$machineId;
         $this->machineId = $machineId;
-//        $redisConfig = Config('database.redis.cache');
-        $redisConfig = [
-            'host' => '127.0.0.1',
-            'port' => 6379,
-            'database' => 1,
-            'prefix' => 'tym_shop:',
-        ];
+        $redisConfig = Config('database.redis.cache');
         if (!empty($redisConfig)) {
             $redis = new \Redis();
             $redis->connect($redisConfig['host'],$redisConfig['port']);
