@@ -27,10 +27,38 @@ class DateSnowflake {
     private $theMillisecond;  // 每日当前毫秒值
     private $nowTime;  // 当前时间戳 毫秒
     private $dateString;  // date('Ymd')  日期
+    private $redis; // laravel Redis缓存
+    private $idCacheKey; //  Redis缓存 id 值
 
     public function __construct($machineId = 0) {
         $machineId = empty($machineId) ? $this->config() :$machineId;
         $this->machineId = $machineId;
+//        $redisConfig = Config('database.redis.cache');
+        $redisConfig = [
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'database' => 1,
+            'prefix' => 'tym_shop:',
+        ];
+        if (!empty($redisConfig)) {
+            $redis = new \Redis();
+            $redis->connect($redisConfig['host'],$redisConfig['port']);
+
+            if (isset($redisConfig['password']) && ! empty($redisConfig['password'])) {
+                $redis->auth($redisConfig['password']);
+            }
+
+            if (empty($redisConfig['database'])) {
+                $redisConfig['database'] = 1;
+            }
+            $redis->select($redisConfig['database']);
+
+            if (!empty($redisConfig['prefix'])) {
+                $this->idCacheKey = $redisConfig['prefix'].'Colyll:DateSnowflake:'. $this->machineId;
+            }
+
+            $this->redis = $redis;
+        }
     }
 
     private function config() {
@@ -80,14 +108,21 @@ class DateSnowflake {
         if ($time !== $this->nowTime) {
             $this->setUp($time);
         }
-
-        // 当前毫秒内序号超出范围，重新获取可用时间
-        if ($this->id > (-1 ^ (-1 << $this->idLength))) {
-            $this->setUp($this->getCanUseTime());
-        }
+        $this->getIncrementId();
         $shortSnowflake = $this->theMillisecond << ($this->idLength + $this->machineIdLength) | $this->machineId << $this->idLength | $this->id;
-        $this->id += 1;
 
         return $this->dateString . $shortSnowflake;
+    }
+
+    private function getIncrementId(){
+        if ($this->redis){
+            $this->id = $this->redis->incrBy($this->idCacheKey, 1)%512;
+        }else{
+            $this->id += 1;
+            // 当前毫秒内序号超出范围，重新获取可用时间
+            if ($this->id > (-1 ^ (-1 << $this->idLength))) {
+                $this->setUp($this->getCanUseTime());
+            }
+        }
     }
 }
