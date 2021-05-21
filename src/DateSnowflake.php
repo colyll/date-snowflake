@@ -28,6 +28,7 @@ class DateSnowflake {
     private $nowTime;  // 当前时间戳 毫秒
     private $dateString;  // date('Ymd')  日期
     private $redis; // laravel Redis缓存
+    private $cacheHead; // 缓存头
     private $idCacheKey; //  Redis缓存 id 值
 
     public function __construct($machineId = 0) {
@@ -48,7 +49,8 @@ class DateSnowflake {
             $redis->select($redisConfig['database']);
 
             if (!empty($redisConfig['prefix'])) {
-                $this->idCacheKey = $redisConfig['prefix'].'Colyll:DateSnowflake:'. $this->machineId;
+                $this->cacheHead = $redisConfig['prefix'].'Colyll:DateSnowflake:'. $this->machineId .':';
+                $this->idCacheKey = $this->cacheHead . $this->nowTime;
             }
 
             $this->redis = $redis;
@@ -74,10 +76,11 @@ class DateSnowflake {
      * @param $time
      */
     private function setUp($time) {
-        $this->id = 0;
         $this->nowTime = $time;
         $this->dateString = date('Ymd', $time / 1000);
         $this->theMillisecond = $time % 86400000;
+        $this->idCacheKey = $this->cacheHead . $this->nowTime;
+        $this->intId();
     }
 
     /**
@@ -110,13 +113,21 @@ class DateSnowflake {
 
     private function getIncrementId(){
         if ($this->redis){
-            $this->id = $this->redis->incrBy($this->idCacheKey, 1)%512;
+            $this->id = $this->redis->incrBy($this->idCacheKey, 1);
         }else{
             $this->id += 1;
             // 当前毫秒内序号超出范围，重新获取可用时间
             if ($this->id > (-1 ^ (-1 << $this->idLength))) {
                 $this->setUp($this->getCanUseTime());
             }
+        }
+    }
+
+    private function intId(){
+        $this->id = 0;
+        if ($this->redis) {
+            $this->redis->setnx($this->idCacheKey, 0);
+            $this->redis->expire($this->idCacheKey, 1);
         }
     }
 }
