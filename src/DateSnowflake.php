@@ -116,17 +116,18 @@ class DateSnowflake {
             $this->id = $this->redis->incrBy($this->idCacheKey, 1);
         }else{
             $this->id += 1;
-            // 当前毫秒内序号超出范围，重新获取可用时间
-            if ($this->id > (-1 ^ (-1 << $this->idLength))) {
-                $this->setUp($this->getCanUseTime());
-            }
+        }
+        // 当前毫秒内序号超出范围，重新获取可用时间
+        if ($this->id > (-1 ^ (-1 << $this->idLength))) {
+            $this->setUp($this->getCanUseTime());
+            $this->getIncrementId();
         }
     }
 
     private function intId(){
-        $this->id = 0;
+        $this->id = -1;
         if ($this->redis) {
-            $this->redis->setnx($this->idCacheKey, 0);
+            $this->redis->setnx($this->idCacheKey, -1);
             $this->redis->expire($this->idCacheKey, 1);
         }
     }
